@@ -157,6 +157,7 @@ export default function collSpecable(
         collType
       );
       setChildrenStores(updatedStores);
+      return this;
     },
 
     remove(idsToRemove = []) {
@@ -167,9 +168,13 @@ export default function collSpecable(
         collType
       );
       setChildrenStores(updatedStores);
+      return this;
     },
 
-    update: (fn) => setChildrenStores(fn(childrenStores)),
+    update: (fn) => {
+      setChildrenStores(fn(childrenStores));
+      return this;
+    },
 
     children: {
       subscribe: children.subscribe,
