@@ -1,0 +1,20 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "env": { "es6": true, "browser": true },
+  "plugins": ["prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "prettier"
+  ],
+  "rules": {
+    "no-console": "error",
+    "no-unused-vars": ["error", { "ignoreRestSiblings": true }],
+    "prettier/prettier": "error"
+  }
+}
