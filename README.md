@@ -2,6 +2,17 @@
 
 Svele-Specma is a Svelte store used to do client-side validation using the very powerful Specma library.
 
+# `configure` - Before using
+
+Since Specma relies on Javascript Symbols to define specs (preds, spreads, opt, etc.), Svelte-Specma must use the same instance of the Spec library. It must hence be configured once prior to usage.
+
+```js
+import * as specma from "specma";
+import { configure } from "svelte-specma";
+
+configure(specma);
+```
+
 # `specable`
 
 Main entry point for defining a specable store.
@@ -61,7 +72,7 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 
 - `set`: Function. `(Any) => undefined`. Set the store's internal value to a new one. Will trigger validation if store is active.
 
-- `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation. If set to true, will immediately trigger validation and return the promised result.
+- `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
 
 - `reset`: Function. `(Any = initialValue) => undefined`. Reset the store to a new initial value (or the initial one if no argument) and deactivate the store.
 

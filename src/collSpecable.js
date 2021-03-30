@@ -1,4 +1,3 @@
-import { getPred, getSpread, isOpt } from "specma";
 import { writable } from "svelte/store";
 import collDerived from "./collDerived";
 import flexDerived from "./flexDerived";
@@ -13,12 +12,16 @@ import {
   typeOf,
   values,
 } from "./util";
+import { specma, ensureConfigured } from "./configure";
 
 export default function collSpecable(
   initialValue,
   { fields, getId, id, required, spec } = {},
   _extra = {}
 ) {
+  ensureConfigured();
+  const { getPred, getSpread, isOpt } = specma;
+
   const { path, rootValueStore = writableByValue(initialValue) } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
   const isRequired = required && !isOpt(required);

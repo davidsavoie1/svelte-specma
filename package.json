@@ -47,7 +47,6 @@
   "dependencies": {
     "clone-deep": "^4.0.1",
     "fast-deep-equal": "^3.1.3",
-    "specma": "^2.3.5",
     "svelte": "^3.29.0"
   }
 }

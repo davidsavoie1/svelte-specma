@@ -1,17 +1,20 @@
 import { derived, get, writable } from "svelte/store";
-import { and, getMessage, getPred, validatePred } from "specma";
 import { ALWAYS_VALID } from "./constants";
 import { equals, getFromValue } from "./util";
 import collDerived from "./collDerived";
+import { specma, ensureConfigured } from "./configure";
 
 const reqSpec = (x) =>
-  ![undefined, null, ""].includes(x) || getMessage("isRequired");
+  ![undefined, null, ""].includes(x) || specma.getMessage("isRequired");
 
 export default function predSpecable(
   initialValue,
   { id, required, spec } = {},
   _extra = {}
 ) {
+  ensureConfigured();
+  const { and, getPred, validatePred } = specma;
+
   const { path, rootValueStore = writable(undefined) } = _extra;
   const pred = getPred(spec);
   const isRequired = !!required;
@@ -108,22 +111,13 @@ export default function predSpecable(
   };
 }
 
-function enhanceResult(res, { path, value } = {}) {
-  const enhanced =
-    res.valid === false
-      ? {
-          ...res,
-          failedPath: res.failedPath || path,
-          failedValue: res.failedValue || value,
-          value,
-        }
-      : res;
-
-  const promise = res.promise
-    ? res.promise.then((promised) => enhanceResult(promised, { value }))
-    : Promise.resolve(enhanced);
-
-  return { ...enhanced, promise };
+function enhanceResult(res) {
+  return {
+    ...res,
+    promise: res.promise
+      ? res.promise.then((promised) => enhanceResult(promised))
+      : Promise.resolve(res),
+  };
 }
 
 function interpretState({ active, id, initialValue, result, value }) {
