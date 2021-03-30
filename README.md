@@ -1,10 +1,32 @@
-# svelte-specma
+# Svelte-Specma
 
-Svele-Specma is a Svelte store used to do client-side validation using the very powerful Specma library.
+Svelte-Specma is a Svelte store used to do client-side validation using the very powerful [Specma](https://www.npmjs.com/package/specma) library.
+
+- Collection specs defined with the exact **same shape as the value**!
+- Based on **predicate functions** of type `true || "reason"`
+- **Composable specs** with intuitive `and`/`or` operators
+- Easy **cross-validation** between multiple fields
+- User defined **customized invalid reasons**
+- **Async validation** out of the box
+- Very **small footprint**
+
+# Design considerations
+
+## Spec design
+
+You should first get familiar with the Specma way of [defining a spec](https://davidsavoie1.github.io/specma/#/gettingStarted?id=predicate-spec). All valid Specma specs will work fine with Svelte-Specma, including async validation, spec composition and cross-fields validation. Specs can hence be reused in a variety of contexts without redefining them all the time. Simple composition with `and` and `or` allows advanced constraints on a base spec, such as calling a remote endpoint asynchronously to check a value availability.
+
+## Requiredness
+
+By design in Specma, specs are usually not prescribing the requiredness of values by themselves. The validation call typically specifies which selection is required. In Svelte-Specma, the requiredness is defined at store creation time, so the spec definition isn't tied to a specific requiredness. This allows reusing the same spec in different forms, where only the required fields change, not the predicates themselves.
+
+## Svelte integration
+
+Svelte-Specma uses Svelte stores to manage state and validation. It is not tied to any particular component, although it might make sense for you to eventually design components to reduce boilerplate code (updating store value, activating on input blur, displaying loading or error messages, etc.).
 
 # `configure` - Before using
 
-Since Specma relies on Javascript Symbols to define specs (preds, spreads, opt, etc.), Svelte-Specma must use the same instance of the Spec library. It must hence be configured once prior to usage.
+Since Specma relies on some Javascript Symbols to define specs, Svelte-Specma must use the same instance of the Spec library. **It must hence be configured once prior to usage**.
 
 ```js
 import * as specma from "specma";
@@ -15,13 +37,23 @@ configure(specma);
 
 # `specable`
 
-Main entry point for defining a specable store.
+Main entry point and **preferred way for defining a specable store**. Will dispatch to `collSpecable` or `predSpecable` based on its arguments (based on spec's shape first, then initial value's shape) to eventually produce a deeply nested store.
+
+## Inputs
+
+```js
+const store = specable(initialValue, { spec, ...rest });
+```
+
+- `initialValue`: Any. The initial value to validate against the spec.
+
+- `spec`: Any. The Specma spec to validate against.
+
+- `...rest`: Object. See `collSpecable` and `predSpecable` details below.
 
 ## Output
 
-A Svelte store with these properties:
-
--
+Either a [`collSpecable`](#collSpecable) or [`predSpecable`](#predSpecable) store (see below).
 
 # `predSpecable`
 
@@ -30,17 +62,13 @@ A Svelte store used to validate a value against the predicate function part of a
 ## Inputs
 
 ```js
-const store = predSpecable(initialValue, {
-  spec,
-  required: false,
-  id: "someId",
-});
+const store = predSpecable(initialValue, { spec, required, id });
 ```
 
-- `initialValue`: The initial value to validate, saved in internal state
-- `spec`: The Specma spec. Only the predicate function part of the spec is used in a `predSpecable`, so a compound value (object, array, etc.) won't validate its children spec. To do so, use a `collSpecable` instead.
-- `required`: False by default. By design in Specma, specs are usually not prescribing the requiredness of values by themselves. The validation call typically specifies which selection is required. In Svelte-Specma, the requiredness is defined at store creation time, so the spec still isn't tied to a specific requiredness.
-- `id`: Used to uniquely identify the store. Mainly useful for values part of a list.
+- `initialValue`: Any. The initial value to validate, saved in internal state
+- `spec`: Any. The Specma spec. Only the predicate function part of the spec is used in a `predSpecable`, so a compound value (object, array, etc.) won't validate its children spec. To do so, use a `collSpecable` instead.
+- `required`: Boolean. If a value is required, must be different than `undefined`, `null` or `""`; will return the Specma `isRequired` message otherwise. False by default.
+- `id`: Any. Used to uniquely identify the store. Mainly useful for values part of a list.
 
 ## Outputs
 
@@ -64,7 +92,7 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 
   - `validating`: Boolean. Is the store currently validating asynchronously?
 
-  - `error`: Any. If value is invalid, validation should have returned any value different than `true` with a short-circuit evaluation. Typically a string representing the error description.
+  - `error`: Any. Description of the error. Usually a string, but any value different than `true` returned from a predicate function validation.
 
   - `promise`: A promise of the validation result that resolves when asynchronous validation is completed. Property is always set even if result is synchronously available to allow waiting for resolution in any case.
 
@@ -81,3 +109,134 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 - `isRequired`: Boolean. Is the store value required? Based on the `required` creation argument.
 
 - `spec`: The predicate function used to derive a validation result.
+
+## Example
+
+```js
+const store = predSpecable(30, {
+  spec: (v) => v === 42 || "is not the answer",
+  required: false,
+  id: "someId",
+});
+```
+
+# `collSpecable`
+
+A Svelte store used to validate a collection value (array, object, Map) against a Specma spec, including its children.
+
+Contrary to `predSpecable`, a `collSpecable` cannot be set or reset directly. The initial value is only used to generate all initial children specable stores, but the store's value is then derived from the values of those children stores.
+
+However, a `collSpecable` offers methods to modify its children specable stores : `add`, `remove`, `update`.
+
+To reset an entire `collSpecable`, the store itself should be recreated.
+
+## Inputs
+
+```js
+const collStore = predSpecable(initialValue, {
+  spec,
+  required
+  fields,
+  getId,
+  id,
+});
+```
+
+- `initialValue`: Collection. The initial value that will generate all initial specable stores.
+
+- `spec`: Collection. The Specma spec.
+- `required`: Collection. A deeply nested collection description of the required fields. Requiredness is defined at the root store to keep specs more reusable.
+- `fields`: Collection. A deeply nested collection description of which fields to expect. Can be useful to allow destrcturing field stores if not all nested fields are required or have a defined spec.
+- `getId`: Collection. A deeply nested collection description of how a subcollection should define the `id` of its children. Can be defined the same way as a spec (with `and`, `spread`, etc.).
+- `id`: Used to uniquely identify the store. Mainly useful for values part of a list.
+
+## Outputs
+
+```js
+/* Store static properties and methods */
+const { id, isRequired, spec, activate, reset, set, subscribe } = collStore;
+
+/* Store subscription internal state values */
+$: ({
+  value,
+  active,
+  changed,
+  valid,
+  validating,
+  error,
+  promise,
+  id,
+} = $collStore);
+```
+
+- `subscribe`: Function. Same as `predSpecable`, but with added state properties, listed below.
+
+  - `error`: Any. The collection's own predicate spec error result.
+
+  - `errors`: Array. Array of `[{ error, path, which, isColl }]` containing all error descriptions. Useful to display all errors in a centralized location on a form, for instance.
+
+    - `error`: Any. Description of the error.
+    - `path`: Array. List of the complete path from root to error node.
+    - `which`: String. Same as `path`, but joined with dots to form a string. Useful to lookup predefined captions in a dictionnary.
+    - `isColl`: Boolean. Indicates if the error is on a collection value.
+
+  - `collErrors`: Array. Same as `errors`, but containing only the errors with the `isColl` flag. Useful to display collection errors in a central location, while primitive field errors are displayed near their input in a form, for instance.
+
+- `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation, including all its children stores. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
+
+- `children`: Svelte readable store. A store that holds a reactive collection of the children specable stores that compose the collection. Subscribe to it to watch changes to a list of children, where some could be added, removed, reordered, etc.
+
+- `stores`: Collection. Same as `children`, but non-reactive. Useful to destructure children stores that won't change over time, such as the fixed fields in a flat form, without having to subscribe first.
+
+- `add`: Function. `(coll) => store`. Method to add new children specable stores. Argument should be declared as a collection of the same type as the store's value. Returns the store for chaining.
+
+- `remove`: Function. `(idsToRemove) => store`. Method to remove children specable stores. Will remove stores by their id. Returns the store for chaining.
+
+- `update`: Function. `(fn) => store`. Method to modify the children specable stores collection by applying a function to it that returns a modified children stores collection. Useful for instance to reorder the children based on their id. Returns the store for chaining.
+
+- `id`: Any. A pass-through of the store's creation `id`.
+
+- `isRequired`: Boolean. Is the store value required? Based on the `required` creation argument.
+
+- `spec`: A pass-through of the store's creation spec.
+
+## Example
+
+```js
+const collStore = predSpecable(initialValue, {
+  spec: {
+    a: (v = "") => v.length > 5 || "must be longer than 5 characters",
+    list: specma.spread({
+      x: specma.and(
+        (v) => typeof v === "number" || "must be a number",
+        (v) => v < 100 || "must be less than 100"
+      ),
+      y: (v) => ["foo", "bar"].includes(v) || "is not an acceptable choice",
+    }),
+  },
+  required: { a: 1, list: specma.spread({ x: 1 }) },
+  fields: { a: 1, list: specma.spread({ x: 1, y: 1, z: 1 }) },
+  getId: { list: ({ id }) => id },
+  id: "myColl",
+});
+```
+
+# `register`
+
+The `register` function facilitates usage of the [`predSpecable`](#predSpecable) store in conjunction to a form input. It is designed to be used with the `use:register` directive:
+
+```html
+<input use:register="{predSpecableStore}" />
+```
+
+Doing so will update the store's value on input, update the input on store value change and activate the store on input blur. Will remove all listeners and subscriptions when input is unmounted.
+
+This shortcut might not work if the input value's type should be cast before validation (if validation expects an number or a JS Date instance, for example). In that case, the store should be used explicitely (functions can easily be inlined):
+
+```svelte
+<input
+  value={$age.value}
+  on:input={(e) => age.set(+e.target.value)}
+  on:blur={() => age.activate()}
+/>
+```
