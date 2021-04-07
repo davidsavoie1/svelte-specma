@@ -6,6 +6,7 @@ import writableByValue from "./writableByValue";
 import {
   entries,
   fromEntries,
+  genRandomId,
   get,
   isColl,
   keys,
@@ -33,13 +34,18 @@ export default function collSpecable(
     ...keys(fields),
   ]);
 
-  const idGen = getPred(getId);
+  const ownGetId = getPred(getId);
+  const idGen = (v, k) => {
+    if (ownGetId) return ownGetId(v, k);
+    if (collType === "array") return genRandomId();
+    return k;
+  };
 
-  const createChildEntry = (key, val, keyModifier = (x) => x) => {
+  const createChildEntry = (key, val) => {
     const subVal = val;
     const subSpec = get(key, spec) || getSpread(spec);
     const subGetId = get(key, getId);
-    const subId = idGen ? idGen(subVal) : keyModifier(key);
+    const subId = idGen(subVal, key);
     const subPath = path ? [...path, subId] : [subId];
     const subFields = get(key, fields) || getSpread(fields);
     const subRequired = get(key, required) || getSpread(required);
@@ -56,7 +62,7 @@ export default function collSpecable(
       { path: subPath, rootValueStore }
     );
 
-    return [keyModifier(key), { ...subStore, id: subId }];
+    return [key, { ...subStore, id: subId }];
   };
 
   let childrenStores = fromEntries(
@@ -146,13 +152,9 @@ export default function collSpecable(
     add(coll) {
       if (!coll) return;
 
-      const newEntries = keys(coll).map((key) => {
-        const keyModifier =
-          collType === "array"
-            ? (idx) => idx + childrenStores.length
-            : undefined;
-        return createChildEntry(key, get(key, coll), keyModifier);
-      });
+      const newEntries = keys(coll).map((key) =>
+        createChildEntry(key, get(key, coll))
+      );
       const updatedStores = fromEntries(
         [...entries(childrenStores), ...newEntries],
         collType

@@ -147,7 +147,7 @@ const collStore = predSpecable(initialValue, {
 - `spec`: Collection. The Specma spec.
 - `required`: Collection. A deeply nested collection description of the required fields. Requiredness is defined at the root store to keep specs more reusable.
 - `fields`: Collection. A deeply nested collection description of which fields to expect. Can be useful to allow destrcturing field stores if not all nested fields are required or have a defined spec.
-- `getId`: Collection. A deeply nested collection description of how a subcollection should define the `id` of its children. Can be defined the same way as a spec (with `and`, `spread`, etc.).
+- `getId`: Collection. A deeply nested collection description of how a subcollection should define the `id` of its children. Can be defined the same way as a spec (with `and`, `spread`, etc.), where the predicate function of a level has the shape `(value, key) => id`. If no function is provided, array items' store will be assigned a unique random id, while objects will use their key as id.
 - `id`: Used to uniquely identify the store. Mainly useful for values part of a list.
 
 ## Outputs

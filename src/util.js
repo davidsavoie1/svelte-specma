@@ -47,6 +47,10 @@ export function keys(coll) {
   return fn ? fn(coll) : [];
 }
 
+export function genRandomId() {
+  return (Math.random() * 1e9).toFixed(0);
+}
+
 export function get(key, coll) {
   const fn = {
     array: () => coll[key],
