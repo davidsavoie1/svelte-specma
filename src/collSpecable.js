@@ -35,8 +35,8 @@ export default function collSpecable(
 
   const idGen = getPred(getId);
 
-  const keyToChildEntry = (key, coll, keyModifier = (x) => x) => {
-    const subVal = get(key, coll);
+  const createChildEntry = (key, val, keyModifier = (x) => x) => {
+    const subVal = val;
     const subSpec = get(key, spec) || getSpread(spec);
     const subGetId = get(key, getId);
     const subId = idGen ? idGen(subVal) : keyModifier(key);
@@ -60,7 +60,7 @@ export default function collSpecable(
   };
 
   let childrenStores = fromEntries(
-    [...allKeys].map((key) => keyToChildEntry(key, initialValue)),
+    [...allKeys].map((key) => createChildEntry(key, get(key, initialValue))),
     collType
   );
 
@@ -150,7 +150,7 @@ export default function collSpecable(
           collType === "array"
             ? (idx) => idx + childrenStores.length
             : undefined;
-        return keyToChildEntry(key, coll, keyModifier);
+        return createChildEntry(key, get(key, coll), keyModifier);
       });
       const updatedStores = fromEntries(
         [...entries(childrenStores), ...newEntries],
@@ -168,6 +168,15 @@ export default function collSpecable(
         collType
       );
       setChildrenStores(updatedStores);
+      return this;
+    },
+
+    set(coll, partial = false) {
+      entries(childrenStores).forEach(([key, store]) => {
+        const newValue = get(key, coll);
+        if (partial && newValue === undefined) return;
+        store.set(newValue, partial);
+      });
       return this;
     },
 

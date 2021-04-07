@@ -124,11 +124,11 @@ const store = predSpecable(30, {
 
 A Svelte store used to validate a collection value (array, object, Map) against a Specma spec, including its children.
 
-Contrary to `predSpecable`, a `collSpecable` cannot be set or reset directly. The initial value is only used to generate all initial children specable stores, but the store's value is then derived from the values of those children stores.
+The initial value is only used to generate all initial children specable stores, but the store's value is then derived from the values of those children stores. The `set` method actually sets the values of the underlying children stores.
 
-However, a `collSpecable` offers methods to modify its children specable stores : `add`, `remove`, `update`.
+A `collSpecable` offers methods to modify its children specable stores : `add`, `remove`, `update`.
 
-To reset an entire `collSpecable`, the store itself should be recreated.
+Contrary to `predSpecable`, a `collSpecable` cannot be reset directly. To reset an entire `collSpecable`, the store itself should be recreated.
 
 ## Inputs
 
@@ -184,21 +184,23 @@ $: ({
 
 - `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation, including all its children stores. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
 
-- `children`: Svelte readable store. A store that holds a reactive collection of the children specable stores that compose the collection. Subscribe to it to watch changes to a list of children, where some could be added, removed, reordered, etc.
-
-- `stores`: Collection. Same as `children`, but non-reactive. Useful to destructure children stores that won't change over time, such as the fixed fields in a flat form, without having to subscribe first.
-
 - `add`: Function. `(coll) => store`. Method to add new children specable stores. Argument should be declared as a collection of the same type as the store's value. Returns the store for chaining.
 
 - `remove`: Function. `(idsToRemove) => store`. Method to remove children specable stores. Will remove stores by their id. Returns the store for chaining.
 
 - `update`: Function. `(fn) => store`. Method to modify the children specable stores collection by applying a function to it that returns a modified children stores collection. Useful for instance to reorder the children based on their id. Returns the store for chaining.
 
+- `set`: Function. `(coll, partial = false) => store`. Method to recursively set the values of the collection's underlying stores. If `partial = true`, sets only the values that are not `undefined`. Returns the store for chaining.
+
 - `id`: Any. A pass-through of the store's creation `id`.
 
 - `isRequired`: Boolean. Is the store value required? Based on the `required` creation argument.
 
-- `spec`: A pass-through of the store's creation spec.
+- `spec`: Any. A pass-through of the store's creation spec.
+
+- `children`: Svelte readable store. A store that holds a reactive collection of the children specable stores that compose the collection. Subscribe to it to watch changes to a list of children, where some could be added, removed, reordered, etc.
+
+- `stores`: Collection. Same as `children`, but non-reactive. Useful to destructure children stores that won't change over time, such as the fixed fields in a flat form, without having to subscribe first.
 
 ## Example
 
