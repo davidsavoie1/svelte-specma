@@ -72,6 +72,7 @@ function flexDerived(initialStores = [], fn = identity, initialValue) {
       /* Subscribe to each store if not alreay done.
        * When a any store value changes,
        * combined result will be updated and published. */
+      _stores = [];
       stores.forEach((store, i) => {
         _stores[i] = store;
 
