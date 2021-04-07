@@ -227,13 +227,26 @@ const collStore = predSpecable(initialValue, {
 
 The `register` function facilitates usage of the [`predSpecable`](#predSpecable) store in conjunction to a form input. It is designed to be used with the `use:register` directive:
 
-```html
+```svelte
 <input use:register="{predSpecableStore}" />
 ```
 
 Doing so will update the store's value on input, update the input on store value change and activate the store on input blur. Will remove all listeners and subscriptions when input is unmounted.
 
-This shortcut might not work if the input value's type should be cast before validation (if validation expects an number or a JS Date instance, for example). In that case, the store should be used explicitely (functions can easily be inlined):
+If the expected value's type is not the same as the HTML input's one (if validation expects an number or a JS Date instance, for example), `use:register` can be used with a list of arguments where the second one is an object with keys `{ toInput, toValue }`:
+
+- `toInput`: Function. `(value) => htmlInputValue`;
+- `toValue`: Function. `(htmlInputValue) => value`;
+
+For example, if the expected value is a number, it could be used like so:
+
+```svelte
+<input
+  use:register="{[predSpecableStore, { toValue: (x) => x && +x }]}"
+/>
+```
+
+In any other case, the store should be used explicitely:
 
 ```svelte
 <input

@@ -1,21 +1,24 @@
-export default function register(el, specableStore) {
-  if (!el || !specableStore) return;
+import { identity } from "./util";
 
-  let store = specableStore;
+export default function register(el, storeOrArgs) {
+  let args = normalizeArgs(storeOrArgs);
+  if (!el || !args.store) return;
+
   let unsub;
   listen();
 
   function blurHandler() {
-    store.activate();
+    args.store.activate();
   }
 
   function inputHandler(e) {
-    store.set(e.target.value);
+    args.store.set(args.toValue(e.target.value));
   }
 
   function listen() {
-    unsub = store.subscribe(({ value = "" }) => {
-      if (el.value !== value) el.value = value;
+    unsub = args.store.subscribe(({ value }) => {
+      const elValue = args.toInput(value);
+      if (el.value !== elValue) el.value = elValue;
     });
     el.addEventListener("blur", blurHandler);
     el.addEventListener("input", inputHandler);
@@ -29,11 +32,26 @@ export default function register(el, specableStore) {
 
   return {
     destroy: unlisten,
-    update(newStore) {
+    update(newArgs) {
       unlisten();
-      if (!newStore) return;
-      store = newStore;
+      if (!newArgs) return;
+      args = normalizeArgs(newArgs);
       listen();
     },
   };
+}
+
+function normalizeArgs(storeOrArgs) {
+  if (!storeOrArgs) return {};
+
+  if (!Array.isArray(storeOrArgs)) {
+    return {
+      store: storeOrArgs,
+      toInput: identity,
+      toValue: identity,
+    };
+  }
+
+  const [store, { toInput = identity, toValue = identity } = {}] = storeOrArgs;
+  return { store, toInput, toValue };
 }

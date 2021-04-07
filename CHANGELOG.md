@@ -6,6 +6,7 @@
 
 - `set` method on `collSpecable`;
 - Associate a random id on array items stores by default, instead of using indexes (which varies too much when dealing with reordering, deletions, etc.);
+- Allow passing `toValue` and `toInput` as additional arguments to `register`;
 
 ### Fix
 
