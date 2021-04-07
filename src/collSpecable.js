@@ -131,12 +131,13 @@ export default function collSpecable(
     stores: childrenStores,
 
     activate(bool = true) {
-      const promises = [ownSpecable, ...values(childrenStores)].map((store) =>
-        store.activate(bool).then((valid) => {
+      const promises = [ownSpecable, ...values(childrenStores)].map((store) => {
+        const promise = store.activate(bool);
+        return promise.then((valid) => {
           if (valid) return valid;
           throw valid;
-        })
-      );
+        });
+      });
       return Promise.all(promises)
         .then(() => true)
         .catch(() => false);
@@ -161,12 +162,11 @@ export default function collSpecable(
     },
 
     remove(idsToRemove = []) {
-      const updatedStores = fromEntries(
-        entries(childrenStores).filter(
-          ([, store]) => !idsToRemove.includes(store.id)
-        ),
-        collType
+      const newEntries = entries(childrenStores).filter(
+        ([, store]) => !idsToRemove.includes(store.id)
       );
+      console.log("newEntries", newEntries);
+      const updatedStores = fromEntries(newEntries, collType);
       setChildrenStores(updatedStores);
       return this;
     },

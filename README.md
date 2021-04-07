@@ -100,7 +100,7 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 
 - `set`: Function. `(Any) => undefined`. Set the store's internal value to a new one. Will trigger validation if store is active.
 
-- `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
+- `activate`: Async function. `(Boolean = true) => Promise`. Method to de/activate the store validation. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
 
 - `reset`: Function. `(Any = initialValue) => undefined`. Reset the store to a new initial value (or the initial one if no argument) and deactivate the store.
 
@@ -182,7 +182,7 @@ $: ({
 
   - `collErrors`: Array. Same as `errors`, but containing only the errors with the `isColl` flag. Useful to display collection errors in a central location, while primitive field errors are displayed near their input in a form, for instance.
 
-- `activate`: Function. `(Boolean = true) => Promise`. Method to de/activate the store validation, including all its children stores. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
+- `activate`: Async function. `(Boolean = true) => Promise`. Method to de/activate the store validation, including all its children stores. If set to true, will immediately trigger validation and return a promise that resolves to the `valid` result property.
 
 - `add`: Function. `(coll) => store`. Method to add new children specable stores. Argument should be declared as a collection of the same type as the store's value. Returns the store for chaining.
 

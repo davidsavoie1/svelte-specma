@@ -1,3 +1,4 @@
+import { tick } from "svelte";
 import { derived, get, writable } from "svelte/store";
 import { ALWAYS_VALID } from "./constants";
 import { equals, getFromValue } from "./util";
@@ -62,10 +63,9 @@ export default function predSpecable(
         return $context[relPath];
       }
 
-      const result = $active
-        ? enhanceResult(validatePred(ownSpec, $value, getFrom))
-        : ALWAYS_VALID;
-
+      const result = enhanceResult(
+        $active ? validatePred(ownSpec, $value, getFrom) : ALWAYS_VALID
+      );
       const baseArgs = {
         active: $active,
         initialValue: _initialValue,
@@ -94,9 +94,11 @@ export default function predSpecable(
     isRequired,
     spec: pred,
 
-    activate(bool = true) {
+    async activate(bool = true) {
       active.set(bool);
-      return currPromise && currPromise.then((res) => res.valid);
+      await tick();
+      const res = await currPromise;
+      return res.valid;
     },
 
     reset(newValue = _initialValue) {
