@@ -47,7 +47,7 @@ function normalizeArgs(storeOrArgs) {
   if (!Array.isArray(storeOrArgs)) {
     return {
       store: storeOrArgs,
-      toInput: identity,
+      toInput: (x = "") => x,
       toValue: identity,
     };
   }
