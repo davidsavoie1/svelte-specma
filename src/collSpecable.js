@@ -162,11 +162,12 @@ export default function collSpecable(
     },
 
     remove(idsToRemove = []) {
-      const newEntries = entries(childrenStores).filter(
-        ([, store]) => !idsToRemove.includes(store.id)
+      const updatedStores = fromEntries(
+        entries(childrenStores).filter(
+          ([, store]) => !idsToRemove.includes(store.id)
+        ),
+        collType
       );
-      console.log("newEntries", newEntries);
-      const updatedStores = fromEntries(newEntries, collType);
       setChildrenStores(updatedStores);
       return this;
     },
