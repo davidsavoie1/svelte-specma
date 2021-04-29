@@ -1,5 +1,15 @@
 # Changelog
 
+## [NEXT] -
+
+### Add
+
+### Fix
+
+- Treat non-required values as valid if `undefined`, `null` or `""`;
+
+---
+
 ## [0.1.0] - 2021-04-16
 
 ### Add

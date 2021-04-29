@@ -5,8 +5,10 @@ import { equals, getFromValue } from "./util";
 import collDerived from "./collDerived";
 import { specma, ensureConfigured } from "./configure";
 
-const reqSpec = (x) =>
-  ![undefined, null, ""].includes(x) || specma.getMessage("isRequired");
+const alwaysTrue = () => true;
+const isMissing = (x) => [undefined, null, ""].includes(x);
+
+const reqSpec = (x) => !isMissing(x) || specma.getMessage("isRequired");
 
 export default function predSpecable(
   initialValue,
@@ -14,12 +16,12 @@ export default function predSpecable(
   _extra = {}
 ) {
   ensureConfigured();
-  const { and, getPred, validatePred } = specma;
+  const { and, getPred, or, validatePred } = specma;
 
   const { path, rootValueStore = writable(undefined) } = _extra;
-  const pred = getPred(spec);
+  const pred = getPred(spec) || alwaysTrue;
   const isRequired = !!required;
-  const ownSpec = isRequired ? and(reqSpec, pred) : pred;
+  const ownSpec = isRequired ? and(reqSpec, pred) : or(pred, isMissing);
 
   const contextStores = {};
   const context = collDerived(contextStores);
