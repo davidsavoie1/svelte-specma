@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.2] - 2021-05-26
+
+### Add
+
+### Fix
+
+- Fix dependencies issues with `npm audit fix`;
+- Cannot read property `spec` of `undefined`;
+
+---
+
+# Changelog
+
 ## [0.1.1] - 2021-05-04
 
 ### Add
