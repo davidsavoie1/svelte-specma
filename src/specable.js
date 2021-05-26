@@ -2,7 +2,7 @@ import collSpecable from "./collSpecable";
 import predSpecable from "./predSpecable";
 import { isColl, isStore } from "./util";
 
-export default function specable(initialValue, options, _extra) {
+export default function specable(initialValue, options = {}, _extra) {
   if (isStore(initialValue)) return initialValue;
 
   if (isColl(options.spec || initialValue))
