@@ -21,16 +21,18 @@ export default function collSpecable(
   _extra = {}
 ) {
   ensureConfigured();
-  const { getPred, getSpread, isOpt } = specma;
+  const { getPred, getSpread, isOpt, select } = specma;
 
-  const { path, rootValueStore = writableByValue(initialValue) } = _extra;
+  const selectedValue = fields ? select(fields, initialValue) : initialValue;
+
+  const { path, rootValueStore = writableByValue(selectedValue) } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
   const isRequired = required && !isOpt(required);
 
   const allKeys = new Set([
-    ...keys(initialValue),
-    ...keys(spec),
-    ...keys(required),
+    ...keys(selectedValue),
+    ...keys(fields ? select(fields, spec) : spec),
+    ...keys(fields ? select(fields, required) : required),
     ...keys(fields),
   ]);
 
@@ -66,12 +68,12 @@ export default function collSpecable(
   };
 
   let childrenStores = fromEntries(
-    [...allKeys].map((key) => createChildEntry(key, get(key, initialValue))),
+    [...allKeys].map((key) => createChildEntry(key, get(key, selectedValue))),
     collType
   );
 
   const children = writable(childrenStores);
-  const ownSpecable = predSpecable(initialValue, {
+  const ownSpecable = predSpecable(selectedValue, {
     id,
     required: isRequired,
     spec,
@@ -115,6 +117,7 @@ export default function collSpecable(
     return {
       ...combined,
       id,
+      initialValue: $ownSpecable.initialValue,
       value,
       error,
       errors,
@@ -202,7 +205,7 @@ function combineChildren(a, b) {
     active: a.active === b.active ? b.active : null,
     changed: a.changed || b.changed,
     valid: validating ? null : a.valid && b.valid,
-    validating: a.validating || b.validating,
+    validating,
   };
 }
 

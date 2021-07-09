@@ -1,5 +1,17 @@
 # Changelog
 
+## [NEXT] -
+
+### Add
+
+- Return store initial value in subscription result.
+
+### Break
+
+- When `fields` is passed to `collSpecable`, use it to select fields on initial value with `specma.select`. This way of doing things ensure proper change detection between store value and initial value.
+
+---
+
 ## [0.1.2] - 2021-05-26
 
 ### Add

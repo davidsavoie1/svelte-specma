@@ -130,6 +130,7 @@ function interpretState({ active, id, initialValue, result, value }) {
     changed: !equals(value, initialValue),
     error: result.valid === false && result.reason,
     id,
+    initialValue,
     promise: result.promise || Promise.resolve(result),
     valid: !!result.valid,
     validating: result.valid === null,
