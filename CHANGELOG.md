@@ -10,6 +10,10 @@
 
 - When `fields` is passed to `collSpecable`, use it to select fields on initial value with `specma.select`. This way of doing things ensure proper change detection between store value and initial value.
 
+### Fix
+
+- Add missing `reset` method on `collSpecable`, advertised in the README.
+
 ---
 
 ## [0.1.2] - 2021-05-26

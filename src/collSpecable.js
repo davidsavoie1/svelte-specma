@@ -133,24 +133,34 @@ export default function collSpecable(
     status.set(aggregateStatusStores());
   }
 
+  function setValue(coll, partial = false) {
+    entries(childrenStores).forEach(([key, store]) => {
+      const newValue = get(key, coll);
+      if (partial && newValue === undefined) return;
+      store.set(newValue, partial);
+    });
+  }
+
+  function activate(bool = true) {
+    const promises = [ownSpecable, ...values(childrenStores)].map((store) => {
+      const promise = store.activate(bool);
+      return promise.then((valid) => {
+        if (valid) return valid;
+        throw valid;
+      });
+    });
+    return Promise.all(promises)
+      .then(() => true)
+      .catch(() => false);
+  }
+
   return {
     id,
     isRequired,
     spec,
     stores: childrenStores,
 
-    activate(bool = true) {
-      const promises = [ownSpecable, ...values(childrenStores)].map((store) => {
-        const promise = store.activate(bool);
-        return promise.then((valid) => {
-          if (valid) return valid;
-          throw valid;
-        });
-      });
-      return Promise.all(promises)
-        .then(() => true)
-        .catch(() => false);
-    },
+    activate,
 
     add(coll) {
       if (!coll) return;
@@ -177,12 +187,14 @@ export default function collSpecable(
       return this;
     },
 
+    reset(newInitialValue = selectedValue) {
+      setValue(newInitialValue, false);
+      activate(false);
+      return this;
+    },
+
     set(coll, partial = false) {
-      entries(childrenStores).forEach(([key, store]) => {
-        const newValue = get(key, coll);
-        if (partial && newValue === undefined) return;
-        store.set(newValue, partial);
-      });
+      setValue(coll, partial);
       return this;
     },
 
