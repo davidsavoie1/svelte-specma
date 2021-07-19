@@ -1,5 +1,13 @@
 # Changelog
 
+## [NEXT] -
+
+### Fix
+
+- When `collSpecable` allows spread children, add missing entries and remove deprecated children stores when using the `set` method.
+
+---
+
 ## [0.2.0] - 2021-07-09
 
 ### Add

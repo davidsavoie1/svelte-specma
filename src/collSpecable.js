@@ -43,14 +43,19 @@ export default function collSpecable(
     return k;
   };
 
+  const spreadSpec = getSpread(spec);
+  const spreadFields = getSpread(fields);
+  const spreadRequired = getSpread(required);
+  const isSpread = spreadSpec || spreadFields || spreadRequired;
+
   const createChildEntry = (key, val) => {
     const subVal = val;
-    const subSpec = get(key, spec) || getSpread(spec);
+    const subSpec = get(key, spec) || spreadSpec;
     const subGetId = get(key, getId);
     const subId = idGen(subVal, key);
     const subPath = path ? [...path, subId] : [subId];
-    const subFields = get(key, fields) || getSpread(fields);
-    const subRequired = get(key, required) || getSpread(required);
+    const subFields = get(key, fields) || spreadFields;
+    const subRequired = get(key, required) || spreadRequired;
 
     const subStore = _extra.specable(
       subVal,
@@ -133,12 +138,60 @@ export default function collSpecable(
     status.set(aggregateStatusStores());
   }
 
+  function addChildren(coll) {
+    if (!coll) return;
+
+    const newEntries = keys(coll).map((key) =>
+      createChildEntry(key, get(key, coll))
+    );
+    const updatedStores = fromEntries(
+      [...entries(childrenStores), ...newEntries],
+      collType
+    );
+    setChildrenStores(updatedStores);
+  }
+
+  function removeChildrenById(idsToRemove = []) {
+    if (idsToRemove.length < 1) return;
+
+    const updatedStores = fromEntries(
+      entries(childrenStores).filter(
+        ([, store]) => !idsToRemove.includes(store.id)
+      ),
+      collType
+    );
+    setChildrenStores(updatedStores);
+  }
+
   function setValue(coll, partial = false) {
-    entries(childrenStores).forEach(([key, store]) => {
+    const childrenEntries = entries(childrenStores);
+
+    childrenEntries.forEach(([key, store]) => {
       const newValue = get(key, coll);
       if (partial && newValue === undefined) return;
       store.set(newValue, partial);
     });
+    if (!isSpread) return;
+
+    /* If collection allows spread children... */
+
+    /* Add `coll` entries that are not yet part of the children stores. */
+    const childrenKeys = keys(childrenStores);
+    const missingChildren = fromEntries(
+      entries(coll).filter(([key]) => !childrenKeys.includes(key)),
+      collType
+    );
+    addChildren(missingChildren);
+
+    if (partial) return;
+
+    /* If update is not partial, remove children stores that do not store
+     * a collection value anymore (garbage collection). */
+    const collKeys = keys(coll);
+    const unusedIds = childrenEntries.reduce((acc, [key, childStore]) => {
+      return collKeys.includes(key) ? acc : [...acc, childStore.id];
+    }, []);
+    removeChildrenById(unusedIds);
   }
 
   function activate(bool = true) {
@@ -163,27 +216,12 @@ export default function collSpecable(
     activate,
 
     add(coll) {
-      if (!coll) return;
-
-      const newEntries = keys(coll).map((key) =>
-        createChildEntry(key, get(key, coll))
-      );
-      const updatedStores = fromEntries(
-        [...entries(childrenStores), ...newEntries],
-        collType
-      );
-      setChildrenStores(updatedStores);
+      addChildren(coll);
       return this;
     },
 
     remove(idsToRemove = []) {
-      const updatedStores = fromEntries(
-        entries(childrenStores).filter(
-          ([, store]) => !idsToRemove.includes(store.id)
-        ),
-        collType
-      );
-      setChildrenStores(updatedStores);
+      removeChildrenById(idsToRemove);
       return this;
     },
 
