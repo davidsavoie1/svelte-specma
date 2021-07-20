@@ -47,6 +47,29 @@ export function keys(coll) {
   return fn ? fn(coll) : [];
 }
 
+/* Merge multiple collections of identical type with right to left arguments precedence. */
+export function merge(...args) {
+  const colls = args.filter(isColl);
+  const type = typeOf(colls[0]);
+  if (!colls.every((coll) => typeOf(coll) === type)) {
+    throw new TypeError("Collections must be of same type");
+  }
+
+  const fn = {
+    array: () =>
+      colls.reduce((acc, coll) => {
+        if (coll.length >= acc.length) return coll;
+        return [...coll, ...acc.slice(coll.length)];
+      }, []),
+    map: () => new Map(colls.map((coll) => coll.entries())),
+    object: () => Object.assign({}, ...colls),
+  }[type];
+
+  if (!fn) throw new Error(`'merge' not implemented yet for ${type}`);
+
+  return fn();
+}
+
 export function genRandomId() {
   return (Math.random() * 1e9).toFixed(0);
 }
@@ -65,19 +88,16 @@ export function getPath(path = [], value) {
   return path.reduce((parent, key) => get(key, parent), value);
 }
 
-export /* Given a value and a current path, return the sub value
- * at a path relative to current one. */
-function getFromValue(relPath, currPath = [], value) {
-  if (!value) return undefined;
-  const newPath = relPath.split("/").reduce((acc, move) => {
-    if ([null, undefined, "", "."].includes(move)) return acc;
+export function countPathAncestors(str = "") {
+  return (str.match(/..\//g) || []).length;
+}
 
-    if (move.startsWith("..")) return acc.slice(0, -1);
-
-    const index = parseInt(move, 10);
-    return [...acc, isNaN(index) ? move : index];
-  }, currPath);
-  return getPath(newPath, value);
+export function keepForwardPath(str = "") {
+  return str.split("/").reduce((acc, node) => {
+    if (!node || node.startsWith(".")) return acc;
+    const index = parseInt(node, 10);
+    return [...acc, isNaN(index) ? node : index];
+  }, []);
 }
 
 export function equals(a, b) {

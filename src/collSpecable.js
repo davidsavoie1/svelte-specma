@@ -2,7 +2,6 @@ import { writable } from "svelte/store";
 import collDerived from "./collDerived";
 import flexDerived from "./flexDerived";
 import predSpecable from "./predSpecable";
-import writableByValue from "./writableByValue";
 import {
   entries,
   fromEntries,
@@ -10,6 +9,7 @@ import {
   get,
   isColl,
   keys,
+  merge,
   typeOf,
   values,
 } from "./util";
@@ -24,17 +24,15 @@ export default function collSpecable(
   const { getPred, getSpread, isOpt, select } = specma;
 
   const selectedValue = fields ? select(fields, initialValue) : initialValue;
+  let collValue = initialValue; // For static properties
 
-  const { path, rootValueStore = writableByValue(selectedValue) } = _extra;
+  const { getAncestor } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
   const isRequired = required && !isOpt(required);
 
-  const allKeys = new Set([
-    ...keys(selectedValue),
-    ...keys(fields ? select(fields, spec) : spec),
-    ...keys(fields ? select(fields, required) : required),
-    ...keys(fields),
-  ]);
+  const allKeys = new Set(
+    fields ? keys(fields) : [...keys(spec), ...keys(required)]
+  );
 
   const ownGetId = getPred(getId);
   const idGen = (v, k) => {
@@ -42,6 +40,12 @@ export default function collSpecable(
     if (collType === "array") return genRandomId();
     return k;
   };
+
+  const ownSpecable = predSpecable(initialValue, {
+    id,
+    required: isRequired,
+    spec,
+  });
 
   const spreadSpec = getSpread(spec);
   const spreadFields = getSpread(fields);
@@ -53,7 +57,6 @@ export default function collSpecable(
     const subSpec = get(key, spec) || spreadSpec;
     const subGetId = get(key, getId);
     const subId = idGen(subVal, key);
-    const subPath = path ? [...path, subId] : [subId];
     const subFields = get(key, fields) || spreadFields;
     const subRequired = get(key, required) || spreadRequired;
 
@@ -66,7 +69,10 @@ export default function collSpecable(
         fields: subFields,
         required: subRequired,
       },
-      { path: subPath, rootValueStore }
+      {
+        getAncestor: (n) =>
+          n <= 1 || !getAncestor ? ownSpecable : getAncestor(n - 1),
+      }
     );
 
     return [key, { ...subStore, id: subId }];
@@ -76,13 +82,7 @@ export default function collSpecable(
     [...allKeys].map((key) => createChildEntry(key, get(key, selectedValue))),
     collType
   );
-
   const children = writable(childrenStores);
-  const ownSpecable = predSpecable(selectedValue, {
-    id,
-    required: isRequired,
-    spec,
-  });
 
   const derivedValue = collDerived(childrenStores, ($childrenStores) => {
     const $childrenEntries = entries($childrenStores);
@@ -90,9 +90,9 @@ export default function collSpecable(
       key,
       state.value,
     ]);
-    const value = fromEntries($childrenValues, collType);
+    const childrenValue = fromEntries($childrenValues, collType);
+    const value = isSpread ? childrenValue : merge(collValue, childrenValue);
     ownSpecable.set(value);
-    if (!path) rootValueStore.set(value);
     return value;
   });
 
@@ -164,6 +164,9 @@ export default function collSpecable(
   }
 
   function setValue(coll, partial = false) {
+    collValue = partial && !isSpread ? merge(collValue, coll) : coll;
+    ownSpecable.set(collValue);
+
     const childrenEntries = entries(childrenStores);
 
     childrenEntries.forEach(([key, store]) => {
@@ -225,7 +228,7 @@ export default function collSpecable(
       return this;
     },
 
-    reset(newInitialValue = selectedValue) {
+    reset(newInitialValue = initialValue) {
       setValue(newInitialValue, false);
       activate(false);
       return this;

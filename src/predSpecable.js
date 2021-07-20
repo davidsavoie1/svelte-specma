@@ -1,7 +1,7 @@
 import { tick } from "svelte";
 import { derived, get, writable } from "svelte/store";
 import { ALWAYS_VALID } from "./constants";
-import { equals, getFromValue } from "./util";
+import { countPathAncestors, equals, getPath, keepForwardPath } from "./util";
 import collDerived from "./collDerived";
 import { specma, ensureConfigured } from "./configure";
 
@@ -18,7 +18,7 @@ export default function predSpecable(
   ensureConfigured();
   const { and, getPred, validatePred } = specma;
 
-  const { path, rootValueStore = writable(undefined) } = _extra;
+  const { getAncestor } = _extra;
   const pred = getPred(spec) || alwaysTrue;
   const isRequired = !!required;
   const ownSpec = isRequired ? and(reqSpec, pred) : pred;
@@ -31,9 +31,17 @@ export default function predSpecable(
      * context store is already tracking the value. */
     if (contextStores[relPath]) return;
 
-    contextStores[relPath] = derived(rootValueStore, (root, set) => {
+    const ancestor = getAncestor(countPathAncestors(relPath));
+    if (!ancestor) return;
+
+    const pathSinceAncestor = keepForwardPath(relPath);
+
+    contextStores[relPath] = derived(ancestor, ($ancestor, set) => {
+      const ancestorValue = $ancestor.value;
+      if (!ancestorValue) return;
+
       const curr = contextStores[relPath].value;
-      const next = getFromValue(relPath, path, root);
+      const next = getPath(pathSinceAncestor, ancestorValue);
       if (!equals(curr, next)) {
         contextStores[relPath].value = next;
         set(next);
@@ -44,7 +52,7 @@ export default function predSpecable(
     /* If context has just been created, it won't be accessible
      * in the derived store at first.
      * In that case, return the static store value. */
-    return getFromValue(relPath, path, get(rootValueStore));
+    return getPath(pathSinceAncestor, get(ancestor).value);
   }
 
   let currPromise;

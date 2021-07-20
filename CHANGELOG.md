@@ -4,11 +4,13 @@
 
 ### Fix
 
-- When `collSpecable` allows spread children, add missing entries and remove deprecated children stores when using the `set` method.
+- When `collSpecable` allows spread children, add missing entries and remove deprecated children stores when using the `set` method;
+- Properly define a `getFrom` function independant of child position;
 
 ### Break
 
-- Do not validate `undefined` values if they are not required.
+- Do not validate `undefined` values if they are not required;
+- Allow setting non validated static values on collections;
 
 ---
 
