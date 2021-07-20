@@ -6,6 +6,10 @@
 
 - When `collSpecable` allows spread children, add missing entries and remove deprecated children stores when using the `set` method.
 
+### Break
+
+- Do not validate `undefined` values if they are not required.
+
 ---
 
 ## [0.2.0] - 2021-07-09

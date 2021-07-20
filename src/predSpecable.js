@@ -16,12 +16,12 @@ export default function predSpecable(
   _extra = {}
 ) {
   ensureConfigured();
-  const { and, getPred, or, validatePred } = specma;
+  const { and, getPred, validatePred } = specma;
 
   const { path, rootValueStore = writable(undefined) } = _extra;
   const pred = getPred(spec) || alwaysTrue;
   const isRequired = !!required;
-  const ownSpec = isRequired ? and(reqSpec, pred) : or(pred, isMissing);
+  const ownSpec = isRequired ? and(reqSpec, pred) : pred;
 
   const contextStores = {};
   const context = collDerived(contextStores);
@@ -65,8 +65,10 @@ export default function predSpecable(
         return $context[relPath];
       }
 
+      const shouldValidate = $active && ($value !== undefined || required);
+
       const result = enhanceResult(
-        $active ? validatePred(ownSpec, $value, getFrom) : ALWAYS_VALID
+        shouldValidate ? validatePred(ownSpec, $value, getFrom) : ALWAYS_VALID
       );
       const baseArgs = {
         active: $active,
