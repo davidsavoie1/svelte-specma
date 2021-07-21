@@ -21,17 +21,23 @@ export default function collSpecable(
   _extra = {}
 ) {
   ensureConfigured();
-  const { getPred, getSpread, isOpt, select } = specma;
+  const { getPred, getSpread, isOpt } = specma;
 
-  const selectedValue = fields ? select(fields, initialValue) : initialValue;
   let collValue = initialValue; // For static properties
 
   const { getAncestor } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
   const isRequired = required && !isOpt(required);
+  const spreadSpec = getSpread(spec);
+  const spreadFields = getSpread(fields);
+  const spreadRequired = getSpread(required);
+  const isSpread = spreadSpec || spreadFields || spreadRequired;
 
+  const valueKeys = isSpread ? keys(initialValue) : [];
   const allKeys = new Set(
-    fields ? keys(fields) : [...keys(spec), ...keys(required)]
+    fields
+      ? [...keys(fields), ...valueKeys]
+      : [...keys(spec), ...keys(required), ...valueKeys]
   );
 
   const ownGetId = getPred(getId);
@@ -46,11 +52,6 @@ export default function collSpecable(
     required: isRequired,
     spec,
   });
-
-  const spreadSpec = getSpread(spec);
-  const spreadFields = getSpread(fields);
-  const spreadRequired = getSpread(required);
-  const isSpread = spreadSpec || spreadFields || spreadRequired;
 
   const createChildEntry = (key, val) => {
     const subVal = val;
@@ -79,7 +80,7 @@ export default function collSpecable(
   };
 
   let childrenStores = fromEntries(
-    [...allKeys].map((key) => createChildEntry(key, get(key, selectedValue))),
+    [...allKeys].map((key) => createChildEntry(key, get(key, initialValue))),
     collType
   );
   const children = writable(childrenStores);
