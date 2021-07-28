@@ -1,5 +1,16 @@
 # Changelog
 
+## [next] -
+
+### Add
+
+- `getChild` and `getChildren` methods on `collSpecable` to retrieve a child at a specified path;
+- Improve documentation in README;
+
+### Fix
+
+- Fix documentation inconsistencies;
+
 ## [0.3.0] - 2021-07-21
 
 ### Fix

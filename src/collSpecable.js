@@ -224,6 +224,18 @@ export default function collSpecable(
       return this;
     },
 
+    getChild(path = []) {
+      return path.reduce((acc, key) => {
+        if (!acc) return null;
+        const childStore = get(key, acc);
+        return childStore ? childStore.getChildren() : null;
+      }, childrenStores);
+    },
+
+    getChildren() {
+      return childrenStores;
+    },
+
     remove(idsToRemove = []) {
       removeChildrenById(idsToRemove);
       return this;
