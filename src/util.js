@@ -52,7 +52,10 @@ export function merge(...args) {
   const colls = args.filter(isColl);
   const type = typeOf(colls[0]);
   if (!colls.every((coll) => typeOf(coll) === type)) {
-    throw new TypeError("Collections must be of same type");
+    const collTypes = colls.map(typeOf).join(", ");
+    throw new TypeError(
+      `Collections must be of same type. Received '${collTypes}'.`
+    );
   }
 
   const fn = {
