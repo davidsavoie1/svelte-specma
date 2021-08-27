@@ -1,5 +1,5 @@
 import { tick } from "svelte";
-import { derived, get, writable } from "svelte/store";
+import { derived, get as getStoreValue, writable } from "svelte/store";
 import { ALWAYS_VALID } from "./constants";
 import { countPathAncestors, equals, getPath, keepForwardPath } from "./util";
 import collDerived from "./collDerived";
@@ -12,7 +12,7 @@ const reqSpec = (x) => !isMissing(x) || specma.getMessage("isRequired");
 
 export default function predSpecable(
   initialValue,
-  { id, required, spec } = {},
+  { id, required, spec, onSubmit } = {},
   _extra = {}
 ) {
   ensureConfigured();
@@ -52,13 +52,14 @@ export default function predSpecable(
     /* If context has just been created, it won't be accessible
      * in the derived store at first.
      * In that case, return the static store value. */
-    return getPath(pathSinceAncestor, get(ancestor).value);
+    return getPath(pathSinceAncestor, getStoreValue(ancestor).value);
   }
 
   let currPromise;
   let _initialValue = initialValue;
 
   const active = writable(false);
+  const submitting = writable(false);
   const value = writable(_initialValue);
 
   const store = derived(
@@ -101,17 +102,30 @@ export default function predSpecable(
     }
   );
 
+  async function activate(bool = true) {
+    active.set(bool);
+    await tick();
+    const res = await currPromise;
+    return res.valid;
+  }
+
+  async function submit() {
+    if (!onSubmit) return;
+    submitting.set(true);
+    const valid = await activate();
+    if (valid) {
+      const currValue = getStoreValue(value);
+      await onSubmit(currValue);
+    }
+    submitting.set(false);
+  }
+
   return {
     id,
     isRequired,
     spec: pred,
 
-    async activate(bool = true) {
-      active.set(bool);
-      await tick();
-      const res = await currPromise;
-      return res.valid;
-    },
+    activate,
 
     reset(newValue = _initialValue) {
       _initialValue = newValue;
@@ -120,6 +134,8 @@ export default function predSpecable(
     },
 
     set: value.set,
+
+    submit,
 
     subscribe: store.subscribe,
   };

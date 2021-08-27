@@ -102,6 +102,8 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 
 - `set`: Function. `(Any) => undefined`. Set the store's internal value to a new one. Will trigger validation if store is active.
 
+- `submit`: Function. `(value) => {}`. Method to first activate then handle the current value. `submitting` state is set to `true` during submit.
+
 - `subscribe`: Function. `(fn) => unsubscribe`. The Svelte store's subscribe method. Usually used in Svelte components with a reactive autosubscription declaration (`$: storeState = $store`). The function argument will be called with the updated internal state (see below) each time it changes. Returns an unsubscribe function that can be called when component unmounts to prevent memory leaks.
 
   - `value`: Any. The internal state value, which can be modified with the store's methods.
@@ -113,6 +115,8 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
   - `valid`: Boolean. Is the value valid when checked against spec? Always `true` when store is not active. `false` if the store is validating asynchronously until a firm result is available.
 
   - `validating`: Boolean. Is the store currently validating asynchronously?
+
+  - `submitting`: Boolean. Is the store currently submitting asynchronously?
 
   - `error`: Any. Description of the error. Usually a string, but any value different than `true` returned from a predicate function validation.
 
@@ -235,6 +239,8 @@ $: ({
 - `children`: Svelte readable store. A store that holds a reactive collection of the children specable stores that compose the collection. Subscribe to it to watch changes to a list of children, where some could be added, removed, reordered, etc.
 
 - `stores`: Collection. Same as `children`, but non-reactive. Useful to destructure children stores that won't change over time, such as the fixed fields in a flat form, without having to subscribe first.
+
+- `submit`: Function. `(value) => {}`. Method to first activate then handle the current value. `submitting` state is set to `true` during submit.
 
 - `subscribe`: Function. Same as `predSpecable`, but with added state properties, listed below.
 

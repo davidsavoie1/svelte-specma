@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { get as getStoreValue, writable } from "svelte/store";
 import collDerived from "./collDerived";
 import flexDerived from "./flexDerived";
 import predSpecable from "./predSpecable";
@@ -17,7 +17,7 @@ import { specma, ensureConfigured } from "./configure";
 
 export default function collSpecable(
   initialValue,
-  { fields, getId, id, required, spec } = {},
+  { fields, getId, id, required, spec, onSubmit } = {},
   _extra = {}
 ) {
   ensureConfigured();
@@ -84,6 +84,7 @@ export default function collSpecable(
     collType
   );
   const children = writable(childrenStores);
+  const submitting = writable(false);
 
   const derivedValue = collDerived(childrenStores, ($childrenStores) => {
     const $childrenEntries = entries($childrenStores);
@@ -99,12 +100,13 @@ export default function collSpecable(
 
   const aggregateStatusStores = () => [
     derivedValue,
+    submitting,
     ownSpecable,
     ...values(childrenStores),
   ];
 
   const status = flexDerived(aggregateStatusStores(), ($statusStores) => {
-    const [, $ownSpecable, ...$children] = $statusStores;
+    const [, $submitting, $ownSpecable, ...$children] = $statusStores;
 
     const combined = [$ownSpecable, ...$children].reduce(combineChildren);
 
@@ -129,6 +131,7 @@ export default function collSpecable(
       errors,
       collErrors,
       details,
+      submitting: $submitting,
     };
   });
 
@@ -211,6 +214,17 @@ export default function collSpecable(
       .catch(() => false);
   }
 
+  async function submit() {
+    if (!onSubmit) return;
+    submitting.set(true);
+    const valid = await activate();
+    if (valid) {
+      const currValue = getStoreValue(ownSpecable).value;
+      await onSubmit(currValue);
+    }
+    submitting.set(false);
+  }
+
   return {
     id,
     isRequired,
@@ -260,6 +274,8 @@ export default function collSpecable(
     children: {
       subscribe: children.subscribe,
     },
+
+    submit,
 
     subscribe: status.subscribe,
   };
