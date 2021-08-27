@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] - 2021-08-27
+
+### Add
+
+- `submit` method on `collSpecable` and `predSpecable` to activate then submit value while updating state to `submitting`;
+
+---
+
 ## [0.3.1] - 2021-07-27
 
 ### Add
@@ -10,6 +18,8 @@
 ### Fix
 
 - Fix documentation inconsistencies;
+
+---
 
 ## [0.3.0] - 2021-07-21
 
