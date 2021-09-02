@@ -133,7 +133,10 @@ export default function predSpecable(
       this.set(newValue);
     },
 
-    set: value.set,
+    set: (newValue, shouldActivate = false) => {
+      value.set(newValue);
+      if (shouldActivate) activate();
+    },
 
     submit,
 

@@ -100,7 +100,7 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 
 - `reset`: Function. `(Any = initialValue) => undefined`. Reset the store to a new initial value (or the initial one if no argument) and deactivate the store.
 
-- `set`: Function. `(Any) => undefined`. Set the store's internal value to a new one. Will trigger validation if store is active.
+- `set`: Function. `(Any, shouldActivate = false) => undefined`. Set the store's internal value to a new one. Will trigger validation if store is active. If `shouldActivate = true`, activates the store after setting the value.
 
 - `submit`: Function. `(value) => {}`. Method to first activate then handle the current value. `submitting` state is set to `true` during submit.
 
@@ -138,7 +138,7 @@ A `collSpecable` offers methods to modify its children specable stores : `add`, 
 import { and, spread } from "specma";
 
 /* The spec could be shared between client and server */
-const baseSpec = {
+export const baseSpec = {
   name: (v = "") => v.length > 5 || "must be longer than 5 characters",
   list: spread({
     x: and(
@@ -154,15 +154,17 @@ const baseSpec = {
 
 ```js
 import { and, spread } from "specma";
+import { baseSpec } from "/some/shared/file";
 
-/* Client could enhanec the base spec to add further validation (async in this case) */
-const enhancedSpec = and({
+/* Client could enhance the base spec to add further validation
+ * (async in this case) */
+const enhancedSpec = and(baseSpec, {
   name: async (v = "") => await checkNameIsUnique(v),
 });
 
 /* Will create a `collSpecable` store, since initial value is a collection */
 const store = specable(
-  { name: "Foo", list: [{ id: "1234", x: 20, y: "abc", z: null }] }, // initialValue
+  { name: "Foo", list: [{ id: "1234", x: 20, y: "abc", z: null }] },
   {
     spec: enhancedSpec,
     required: { name: 1, list: spread({ x: 1 }) },
@@ -232,9 +234,9 @@ $: ({
 
 - `remove`: Function. `(idsToRemove) => store`. Method to remove children specable stores. Will remove stores by their id. Returns the store for chaining.
 
-- `set`: Function. `(coll, partial = false) => store`. Method to recursively set the values of the collection's underlying stores. If `partial = true`, sets only the values that are not `undefined`. Returns the store for chaining.
+- `set`: Function. `(coll, partial = false, shouldActivate = false) => store`. Method to recursively set the values of the collection's underlying stores. If `partial = true`, sets only the values that are not `undefined`. If `shouldActivate = true`, activates the store after setting the value. Returns the store for chaining.
 
-- `update`: Function. `(fn) => store`. Method to modify the children specable stores collection by applying a function to it that returns a modified children stores collection. Useful for instance to reorder the children based on their id. Returns the store for chaining.
+- `update`: Function. `(fn) => store`. Method to modify the children specable stores collection by applying a function `(storesCollection) => storesCollection` to it that returns a modified children stores collection. It operates on the collection of children stores, NOT the underlying value. To update the value itself, use `set` with a modified `$store.value`. Useful for instance to reorder the children based on their id. Returns the store for chaining.
 
 - `children`: Svelte readable store. A store that holds a reactive collection of the children specable stores that compose the collection. Subscribe to it to watch changes to a list of children, where some could be added, removed, reordered, etc.
 

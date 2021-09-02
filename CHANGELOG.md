@@ -1,5 +1,13 @@
 # Changelog
 
+## [NEXT] - 2021-09-02
+
+### Add
+
+- Possibility to activate a specable store directly with the `set` method;
+
+---
+
 ## [0.3.2] - 2021-08-27
 
 ### Add

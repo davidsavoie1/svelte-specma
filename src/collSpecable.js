@@ -261,8 +261,9 @@ export default function collSpecable(
       return this;
     },
 
-    set(coll, partial = false) {
+    set(coll, partial = false, shouldActivate = false) {
       setValue(coll, partial);
+      if (shouldActivate) activate();
       return this;
     },
 
