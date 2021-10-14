@@ -7,12 +7,13 @@ import { specma, ensureConfigured } from "./configure";
 
 const alwaysTrue = () => true;
 const isMissing = (x) => [undefined, null, ""].includes(x);
+const defaultChangePred = (a, b) => !equals(a, b);
 
 const reqSpec = (x) => !isMissing(x) || specma.getMessage("isRequired");
 
 export default function predSpecable(
   initialValue,
-  { id, required, spec, onSubmit } = {},
+  { changePred = defaultChangePred, id, required, spec, onSubmit } = {},
   _extra = {}
 ) {
   ensureConfigured();
@@ -81,6 +82,7 @@ export default function predSpecable(
       );
       const baseArgs = {
         active: $active,
+        changePred,
         initialValue: _initialValue,
         id,
         result,
@@ -153,16 +155,24 @@ function enhanceResult(res) {
   };
 }
 
-function interpretState({ active, id, initialValue, result, value }) {
+function interpretState({
+  active,
+  changePred,
+  id,
+  initialValue,
+  result,
+  value,
+}) {
+  const changed = changePred(value, initialValue);
   return {
     active,
-    changed: !equals(value, initialValue),
+    changed,
     error: result.valid === false && result.reason,
     id,
     initialValue,
     promise: result.promise || Promise.resolve(result),
     valid: !!result.valid,
     validating: result.valid === null,
-    value: value,
+    value: changed ? value : initialValue,
   };
 }

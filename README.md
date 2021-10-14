@@ -86,6 +86,7 @@ $: ({ value, active, changed, valid, validating, error, promise, id } = $store);
 - `initialValue`: Any. The initial value to validate, saved in internal state
 - `spec`: Any. The Specma spec. Only the predicate function part of the spec is used in a `predSpecable`, so a compound value (object, array, etc.) won't validate its children spec. To do so, use a `collSpecable` instead.
 - `required`: Boolean. If a value is required, must be different than `undefined`, `null` or `""`; will return the Specma `isRequired` message otherwise. False by default.
+- `changePred`: Function. `(a, b) => boolean`. Function to evaluate if value is different from initial value. By default, will do a deep object value equality and compare dates by value.
 - `id`: Any. Used to uniquely identify the store. Mainly useful for values part of a list.
 
 ## Outputs
@@ -214,6 +215,7 @@ $: ({
 - `required`: Collection. A deeply nested collection description of the required fields. Requiredness is defined at the root store to keep specs more reusable.
 - `fields`: Collection. A deeply nested collection description of which fields to expect, that will ensure that those fields are defined as children specable stores. Undeclared field values will be treated as constant and won't be displayed as children stores.
 - `getId`: Collection. A deeply nested collection description of how a subcollection should define the `id` of its children. Can be defined the same way as a spec (with `and`, `spread`, etc.), where the predicate function of a level has the shape `(value, key) => id`. If no function is provided, array items' store will be assigned a unique random id, while objects will use their key as id.
+- `changePred`: Collection. A deeply nested collection description of change predicates (see `predCheckable` inputs). Can be defined the same way as `getId`.
 - `id`: Used to uniquely identify the store. Mainly useful for values part of a list.
 
 ## Outputs

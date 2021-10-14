@@ -1,5 +1,17 @@
 # Changelog
 
+## [NEXT] - 2021-10-13
+
+### Fix
+
+- Check equality of dates differently than objects;
+
+### Add
+
+- Allow defining a `changePred` function to evaluate if value has changed from initial value, with strong default. If value has not changed according to this pred, use initial value;
+
+---
+
 ## [0.3.3] - 2021-09-02
 
 ### Add

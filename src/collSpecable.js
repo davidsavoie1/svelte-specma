@@ -17,7 +17,7 @@ import { specma, ensureConfigured } from "./configure";
 
 export default function collSpecable(
   initialValue,
-  { fields, getId, id, required, spec, onSubmit } = {},
+  { changePred, fields, getId, id, required, spec, onSubmit } = {},
   _extra = {}
 ) {
   ensureConfigured();
@@ -48,12 +48,14 @@ export default function collSpecable(
   };
 
   const ownSpecable = predSpecable(initialValue, {
+    changePred: getPred(changePred),
     id,
     required: isRequired,
     spec,
   });
 
   const createChildEntry = (key, val) => {
+    const subChangePred = get(key, changePred) || getSpread(changePred);
     const subVal = val;
     const subSpec = get(key, spec) || spreadSpec;
     const subGetId = get(key, getId);
@@ -65,6 +67,7 @@ export default function collSpecable(
       subVal,
       {
         spec: subSpec,
+        changePred: subChangePred,
         id: subId,
         getId: subGetId,
         fields: subFields,

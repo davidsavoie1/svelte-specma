@@ -103,8 +103,15 @@ export function keepForwardPath(str = "") {
   }, []);
 }
 
-export function equals(a, b) {
-  return fastEquals.apply(fastEquals, [a, b].map(removeUndefined));
+export function equals(a, b, eqBy = defaultEqBy) {
+  const [_a, _b] = [a, b].map(eqBy);
+  return _a === _b || fastEquals(_a, _b);
+}
+
+function defaultEqBy(x) {
+  if (x instanceof Date) return x.valueOf();
+  if (isColl(x)) return removeUndefined(x);
+  return x;
 }
 
 function removeUndefined(x) {
