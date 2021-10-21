@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0] - 2021-10-21
+
+Feels like this package is ready for 1.0.0!
+
+### Fix
+
+- Treat only `array`, `map` and `object` as collections;
+
+---
+
 ## [0.3.4] - 2021-10-13
 
 ### Fix
