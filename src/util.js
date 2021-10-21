@@ -1,7 +1,7 @@
 import fastEquals from "fast-deep-equal";
 
 export const identity = (x) => x;
-export const isColl = (x) => x && typeof x === "object";
+export const isColl = (x) => ["array", "map", "object"].includes(typeOf(x));
 export const isFunc = (x) => typeof x === "function";
 export const isStore = (x) => x && x.subscribe && isFunc(x.subscribe);
 
