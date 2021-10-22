@@ -47,12 +47,16 @@ export default function collSpecable(
     return k;
   };
 
-  const ownSpecable = predSpecable(initialValue, {
-    changePred: getPred(changePred),
-    id,
-    required: isRequired,
-    spec,
-  });
+  const ownSpecable = predSpecable(
+    initialValue,
+    {
+      changePred: getPred(changePred),
+      id,
+      required: isRequired,
+      spec,
+    },
+    _extra
+  );
 
   const createChildEntry = (key, val) => {
     const subChangePred = get(key, changePred) || getSpread(changePred);
