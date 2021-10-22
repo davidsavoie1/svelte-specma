@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2] - 2021-10-22
+
+### Fix
+
+- Wrong usage of regex to determine number of ancestors;
+
+---
+
 ## [1.0.1] - 2021-10-21
 
 ### Fix
@@ -9,6 +17,8 @@
 ### Add
 
 - Treat trailing ".." as "../" in ancestors path;
+
+---
 
 ## [1.0.0] - 2021-10-21
 
