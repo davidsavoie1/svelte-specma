@@ -92,7 +92,7 @@ export function getPath(path = [], value) {
 }
 
 export function countPathAncestors(str = "") {
-  return (str.match(/..\//g) || []).length;
+  return (str.match(/..\/|..$/g) || []).length;
 }
 
 export function keepForwardPath(str = "") {
