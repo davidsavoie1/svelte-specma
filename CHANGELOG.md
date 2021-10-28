@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2021-10-28
+
+### Fix
+
+- Allow setting a collection to `undefined`;
+
+---
+
 ## [1.0.2] - 2021-10-22
 
 ### Fix
