@@ -24,6 +24,7 @@ export default function collSpecable(
   const { getPred, getSpread, isOpt } = specma;
 
   let collValue = initialValue; // For static properties
+  let isUndef = collValue === undefined;
 
   const { getAncestor } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
@@ -94,6 +95,8 @@ export default function collSpecable(
   const submitting = writable(false);
 
   const derivedValue = collDerived(childrenStores, ($childrenStores) => {
+    if (isUndef) return undefined;
+
     const $childrenEntries = entries($childrenStores);
     const $childrenValues = $childrenEntries.map(([key, state]) => [
       key,
@@ -115,7 +118,10 @@ export default function collSpecable(
   const status = flexDerived(aggregateStatusStores(), ($statusStores) => {
     const [, $submitting, $ownSpecable, ...$children] = $statusStores;
 
-    const combined = [$ownSpecable, ...$children].reduce(combineChildren);
+    const combined =
+      $ownSpecable.value === undefined
+        ? $ownSpecable
+        : [$ownSpecable, ...$children].reduce(combineChildren);
 
     if (combined.active !== false) ownSpecable.activate();
 
@@ -175,6 +181,7 @@ export default function collSpecable(
   }
 
   function setValue(coll, partial = false) {
+    isUndef = coll === undefined;
     collValue = partial && !isSpread ? merge(collValue, coll) : coll;
     ownSpecable.set(collValue);
 
