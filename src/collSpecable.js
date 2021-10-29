@@ -118,10 +118,11 @@ export default function collSpecable(
   const status = flexDerived(aggregateStatusStores(), ($statusStores) => {
     const [, $submitting, $ownSpecable, ...$children] = $statusStores;
 
-    const combined =
-      $ownSpecable.value === undefined
-        ? $ownSpecable
-        : [$ownSpecable, ...$children].reduce(combineChildren);
+    const isUndef = $ownSpecable.value === undefined;
+
+    const combined = isUndef
+      ? $ownSpecable
+      : [$ownSpecable, ...$children].reduce(combineChildren);
 
     if (combined.active !== false) ownSpecable.activate();
 
@@ -129,7 +130,7 @@ export default function collSpecable(
 
     const details = Object.fromEntries([
       ["_", $ownSpecable],
-      ...$children.map((child) => [child.id, child]),
+      ...(isUndef ? [] : $children.map((child) => [child.id, child])),
     ]);
 
     const errors = detailsToErrors(details, id);
@@ -216,7 +217,11 @@ export default function collSpecable(
   }
 
   function activate(bool = true) {
-    const promises = [ownSpecable, ...values(childrenStores)].map((store) => {
+    const storesToActivate = [
+      ownSpecable,
+      ...(isUndef ? [] : values(childrenStores)),
+    ];
+    const promises = storesToActivate.map((store) => {
       const promise = store.activate(bool);
       return promise.then((valid) => {
         if (valid) return valid;
