@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1] - 2021-10-28
+
+### Fix
+
+- Prevent tracking of sub errors when collection is `undefined`;
+- Ensure `validate` doesn't validate sub stores when collection is `undefined`;
+
+---
+
 ## [1.1.0] - 2021-10-28
 
 ### Fix
