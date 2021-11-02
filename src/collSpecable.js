@@ -258,11 +258,17 @@ export default function collSpecable(
     },
 
     getChild(path = []) {
-      return path.reduce((acc, key) => {
-        if (!acc) return null;
-        const childStore = get(key, acc);
-        return childStore ? childStore.getChildren() : null;
-      }, childrenStores);
+      const reduced = path.reduce(
+        (acc, key) => {
+          const { children } = acc;
+          if (!children) return { res: null };
+          const childStore = get(key, children);
+          if (!childStore) return { res: null };
+          return { res: childStore, children: childStore.getChildren() };
+        },
+        { children: childrenStores }
+      );
+      return reduced.res;
     },
 
     getChildren() {
