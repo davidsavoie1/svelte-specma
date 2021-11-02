@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2] - 2021-11-02
+
+### Fix
+
+- `getChild` now properly returns an actuel store;
+
+---
+
 ## [1.1.1] - 2021-10-28
 
 ### Fix
