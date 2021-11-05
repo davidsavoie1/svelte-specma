@@ -264,7 +264,10 @@ export default function collSpecable(
           if (!children) return { res: null };
           const childStore = get(key, children);
           if (!childStore) return { res: null };
-          return { res: childStore, children: childStore.getChildren() };
+          return {
+            res: childStore,
+            children: childStore.getChildren ? childStore.getChildren() : [],
+          };
         },
         { children: childrenStores }
       );
