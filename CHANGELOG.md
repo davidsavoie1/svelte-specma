@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3] - 2021-11-05
+
+### Fix
+
+- Undefined `getChildren` throws in `getChild`;
+
+---
+
 ## [1.1.2] - 2021-11-02
 
 ### Fix
