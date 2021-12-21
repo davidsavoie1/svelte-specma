@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4] - 2021-12-21
+
+### Fix
+
+- Consider spread in `getId`;
+
+---
+
 ## [1.1.3] - 2021-11-05
 
 ### Fix
