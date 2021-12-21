@@ -29,10 +29,16 @@ export default function collSpecable(
   const { getAncestor } = _extra;
   const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
   const isRequired = required && !isOpt(required);
+  const spreadGetId = getSpread(getId);
   const spreadSpec = getSpread(spec);
   const spreadFields = getSpread(fields);
   const spreadRequired = getSpread(required);
-  const isSpread = spreadSpec || spreadFields || spreadRequired;
+  const isSpread =
+    spreadSpec ||
+    spreadFields ||
+    spreadRequired ||
+    spreadGetId ||
+    collType === "array";
 
   const valueKeys = isSpread ? keys(initialValue) : [];
   const allKeys = new Set(
@@ -63,7 +69,7 @@ export default function collSpecable(
     const subChangePred = get(key, changePred) || getSpread(changePred);
     const subVal = val;
     const subSpec = get(key, spec) || spreadSpec;
-    const subGetId = get(key, getId);
+    const subGetId = get(key, getId) || spreadGetId;
     const subId = idGen(subVal, key);
     const subFields = get(key, fields) || spreadFields;
     const subRequired = get(key, required) || spreadRequired;
