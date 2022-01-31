@@ -27,7 +27,8 @@ export default function collSpecable(
   let isUndef = collValue === undefined;
 
   const { getAncestor } = _extra;
-  const collType = isColl(spec) ? typeOf(spec) : typeOf(initialValue);
+  const collDefiner = [fields, spec, initialValue].find(isColl);
+  const collType = typeOf(collDefiner);
   const isRequired = required && !isOpt(required);
   const spreadGetId = getSpread(getId);
   const spreadSpec = getSpread(spec);
