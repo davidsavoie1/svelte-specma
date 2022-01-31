@@ -111,6 +111,7 @@ export default function collSpecable(
     ]);
     const childrenValue = fromEntries($childrenValues, collType);
     const value = isSpread ? childrenValue : merge(collValue, childrenValue);
+    isUndef = value === undefined;
     ownSpecable.set(value);
     return value;
   });
@@ -124,8 +125,6 @@ export default function collSpecable(
 
   const status = flexDerived(aggregateStatusStores(), ($statusStores) => {
     const [, $submitting, $ownSpecable, ...$children] = $statusStores;
-
-    const isUndef = $ownSpecable.value === undefined;
 
     const combined = isUndef
       ? $ownSpecable
@@ -189,8 +188,8 @@ export default function collSpecable(
   }
 
   function setValue(coll, partial = false) {
-    isUndef = coll === undefined;
     collValue = partial && !isSpread ? merge(collValue, coll) : coll;
+    isUndef = collValue === undefined;
     ownSpecable.set(collValue);
 
     const childrenEntries = entries(childrenStores);
@@ -260,6 +259,7 @@ export default function collSpecable(
     activate,
 
     add(coll) {
+      if (coll !== undefined) isUndef = false;
       addChildren(coll);
       return this;
     },
