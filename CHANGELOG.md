@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.5] - 2022-01-31
+
+### Fix
+
+- Allow adding to `collSpecable` when its value is `undefined`;
+- Consider `fields` when choosing if `collSpecable`;
+
+---
+
 ## [1.1.4] - 2021-12-21
 
 ### Fix
