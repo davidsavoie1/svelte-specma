@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.6] - 2022-03-20
+
+### Fix
+
+- Add `submitting` to `predSpecable` status
+
+---
+
 ## [1.1.5] - 2022-01-31
 
 ### Fix
