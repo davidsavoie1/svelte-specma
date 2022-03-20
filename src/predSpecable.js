@@ -64,8 +64,8 @@ export default function predSpecable(
   const value = writable(_initialValue);
 
   const store = derived(
-    [active, value, context],
-    ([$active, $value, $context], set) => {
+    [active, value, context, submitting],
+    ([$active, $value, $context, $submitting], set) => {
       currPromise = undefined;
 
       function getFrom(relPath) {
@@ -86,6 +86,7 @@ export default function predSpecable(
         initialValue: _initialValue,
         id,
         result,
+        submitting: $submitting,
         value: $value,
       };
 
@@ -161,6 +162,7 @@ function interpretState({
   id,
   initialValue,
   result,
+  submitting,
   value,
 }) {
   const changed = changePred(value, initialValue);
@@ -171,6 +173,7 @@ function interpretState({
     id,
     initialValue,
     promise: result.promise || Promise.resolve(result),
+    submitting,
     valid: !!result.valid,
     validating: result.valid === null,
     value: changed ? value : initialValue,
