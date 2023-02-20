@@ -112,19 +112,17 @@ export default function collSpecable(
     const childrenValue = fromEntries($childrenValues, collType);
     const value = isSpread ? childrenValue : merge(collValue, childrenValue);
     isUndef = value === undefined;
-    ownSpecable.set(value);
     return value;
   });
 
   const aggregateStatusStores = () => [
-    derivedValue,
     submitting,
     ownSpecable,
     ...values(childrenStores),
   ];
 
   const status = flexDerived(aggregateStatusStores(), ($statusStores) => {
-    const [, $submitting, $ownSpecable, ...$children] = $statusStores;
+    const [$submitting, $ownSpecable, ...$children] = $statusStores;
 
     const combined = isUndef
       ? $ownSpecable
@@ -184,20 +182,22 @@ export default function collSpecable(
       ),
       collType
     );
+
     setChildrenStores(updatedStores);
   }
 
-  function setValue(coll, partial = false) {
-    collValue = partial && !isSpread ? merge(collValue, coll) : coll;
+  function setValue(coll, { partial = false, reset = false } = {}) {
+    const setMethod = reset ? "reset" : "set";
+    collValue = !reset && partial && !isSpread ? merge(collValue, coll) : coll;
     isUndef = collValue === undefined;
-    ownSpecable.set(collValue);
+    ownSpecable[setMethod](collValue);
 
     const childrenEntries = entries(childrenStores);
 
     childrenEntries.forEach(([key, store]) => {
       const newValue = get(key, coll);
       if (partial && newValue === undefined) return;
-      store.set(newValue, partial);
+      store[setMethod](newValue, partial);
     });
     if (!isSpread) return;
 
@@ -205,11 +205,12 @@ export default function collSpecable(
 
     /* Add `coll` entries that are not yet part of the children stores. */
     const childrenKeys = keys(childrenStores);
-    const missingChildren = fromEntries(
-      entries(coll).filter(([key]) => !childrenKeys.includes(key)),
-      collType
+    const missingChildrenEntries = entries(coll).filter(
+      ([key]) => !childrenKeys.includes(key)
     );
-    addChildren(missingChildren);
+    if (missingChildrenEntries.length > 0) {
+      addChildren(fromEntries(missingChildrenEntries, collType));
+    }
 
     if (partial) return;
 
@@ -291,13 +292,13 @@ export default function collSpecable(
     },
 
     reset(newInitialValue = initialValue) {
-      setValue(newInitialValue, false);
+      setValue(newInitialValue, { reset: true });
       activate(false);
       return this;
     },
 
     set(coll, partial = false, shouldActivate = false) {
-      setValue(coll, partial);
+      setValue(coll, { partial });
       if (shouldActivate) activate();
       return this;
     },
@@ -313,7 +314,14 @@ export default function collSpecable(
 
     submit,
 
-    subscribe: status.subscribe,
+    subscribe: (fn) => {
+      const unsub1 = derivedValue.subscribe((value) => ownSpecable.set(value));
+      const unsub2 = status.subscribe(fn);
+      return () => {
+        unsub1();
+        unsub2();
+      };
+    },
   };
 }
 

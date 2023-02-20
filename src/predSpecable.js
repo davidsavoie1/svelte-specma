@@ -4,6 +4,7 @@ import { ALWAYS_VALID } from "./constants";
 import { countPathAncestors, equals, getPath, keepForwardPath } from "./util";
 import collDerived from "./collDerived";
 import { specma, ensureConfigured } from "./configure";
+import writableByValue from "./writableByValue";
 
 const alwaysTrue = () => true;
 const isMissing = (x) => [undefined, null, ""].includes(x);
@@ -61,7 +62,7 @@ export default function predSpecable(
 
   const active = writable(false);
   const submitting = writable(false);
-  const value = writable(_initialValue);
+  const value = writableByValue(_initialValue);
 
   const store = derived(
     [active, value, context, submitting],
