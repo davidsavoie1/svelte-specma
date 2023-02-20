@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.7] - 2023-02-20
+
+- Bettter manage reset method;
+- Compare collection values by value before setting its store;
+- Avoid side-effect in derived store;
+
+---
+
 ## [1.1.6] - 2022-03-20
 
 ### Fix
