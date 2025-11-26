@@ -5,13 +5,10 @@
   },
   "env": { "es6": true, "browser": true },
   "plugins": ["prettier"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:prettier/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "prettier"
-  ],
+  "extends": ["eslint:recommended", "plugin:prettier/recommended", "prettier"],
+  "settings": {
+    "import/core-modules": ["svelte/store"]
+  },
   "rules": {
     "no-console": "error",
     "no-unused-vars": ["error", { "ignoreRestSiblings": true }],

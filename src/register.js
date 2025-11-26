@@ -1,5 +1,17 @@
 import { identity } from "./util";
 
+/**
+ * Register an HTML input element to a `predSpecable` store.
+ *
+ * Usage in Svelte: <input use:register="{store}" />
+ * Optionally: <input use:register="{[store, { toInput, toValue }]}" />
+ *
+ * The returned object matches Svelte action contract { update, destroy }.
+ *
+ * @param {HTMLElement} el - the input element
+ * @param {import('./predSpecable').default|Array} storeOrArgs - store or [store, {toInput,toValue}]
+ * @returns {{ destroy: () => void, update: (newArgs:any) => void }|undefined}
+ */
 export default function register(el, storeOrArgs) {
   let args = normalizeArgs(storeOrArgs);
   if (!el || !args.store) return;

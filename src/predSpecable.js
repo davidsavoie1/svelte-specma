@@ -1,4 +1,3 @@
-import { tick } from "svelte";
 import { derived, get as getStoreValue, writable } from "svelte/store";
 import { ALWAYS_VALID } from "./constants";
 import { countPathAncestors, equals, getPath, keepForwardPath } from "./util";
@@ -12,6 +11,23 @@ const defaultChangePred = (a, b) => !equals(a, b);
 
 const reqSpec = (x) => !isMissing(x) || specma.getMessage("isRequired");
 
+/**
+ * Create a predicate spec-aware Svelte store for a single value.
+ *
+ * The store validates a primitive or non-collection value against a Specma
+ * predicate spec and exposes helper methods like `.activate()`, `.set()`,
+ * `.reset()` and `.submit()`.
+ *
+ * @param {any} initialValue - initial value to validate
+ * @param {Object} [options]
+ * @param {Function} [options.changePred] - (a,b)=>boolean, determines changed state
+ * @param {any} [options.id] - optional identifier
+ * @param {boolean} [options.required] - is value required
+ * @param {any} [options.spec] - Specma spec (predicate)
+ * @param {Function} [options.onSubmit] - optional submit handler
+ * @param {Object} [_extra] - internal helpers (e.g. getAncestor)
+ * @returns {import('svelte/store').Readable}
+ */
 export default function predSpecable(
   initialValue,
   { changePred = defaultChangePred, id, required, spec, onSubmit } = {},
@@ -108,7 +124,8 @@ export default function predSpecable(
 
   async function activate(bool = true) {
     active.set(bool);
-    await tick();
+    // Let derived subscribers run before reading currPromise
+    await Promise.resolve();
     const res = await currPromise;
     return res.valid;
   }

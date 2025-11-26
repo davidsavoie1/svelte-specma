@@ -1,10 +1,16 @@
 # Changelog
 
+## [2.0.0] - 2025-11-26
+
+- BREAK : Move Svelte from dependencies to peer-dependencies
+- Add more documentation (AI generated);
+
+---
+
 ## [1.1.7] - 2023-02-20
 
 - Bettter manage reset method;
 - Compare collection values by value before setting its store;
-- Avoid side-effect in derived store;
 
 ---
 

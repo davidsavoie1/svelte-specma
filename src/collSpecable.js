@@ -15,6 +15,33 @@ import {
 } from "./util";
 import { specma, ensureConfigured } from "./configure";
 
+/**
+ * collSpecable
+ *
+ * A spec-aware Svelte store factory for collection-like data (objects, arrays,
+ * Maps). It composes child specable stores (predSpecable or nested collSpecable)
+ * for each entry in the collection and exposes an aggregate "status" store
+ * that mirrors validation state, errors and submission state.
+ *
+ * Key responsibilities:
+ * - Compose child stores according to `fields`, `spec`, `getId`, and `required`.
+ * - Keep an aggregate derived value that merges children values with a base
+ *   collection value (supports "spread" semantics).
+ * - Provide manipulation helpers: add, remove, set, reset, update, activate, submit.
+ * - Produce a Svelte-compatible subscribe() that emits the aggregated status.
+ *
+ * Parameters:
+ * - initialValue: the initial collection value (array/object/Map or undefined)
+ * - options: configuration object:
+ *   - changePred, fields, getId, id, required, spec, onSubmit
+ * - _extra: internal helpers (used for recursion; supplies specable and getAncestor)
+ *
+ * Returns an object with:
+ * - id, isRequired, spec, stores
+ * - activate(), add(), getChild(), getChildren(), remove(), reset(), set(), update()
+ * - children: { subscribe } (stores of children)
+ * - submit(), subscribe(fn) (subscribe to aggregated status)
+ */
 export default function collSpecable(
   initialValue,
   { changePred, fields, getId, id, required, spec, onSubmit } = {},
@@ -325,6 +352,15 @@ export default function collSpecable(
   };
 }
 
+/**
+ * Combine two child status objects into an aggregate status.
+ *
+ * Returns an object with:
+ * - active: true/false/null depending on consistency between children
+ * - changed: boolean flag if any child changed
+ * - valid: boolean|null (null while validating)
+ * - validating: boolean
+ */
 function combineChildren(a, b) {
   const validating = a.validating || b.validating;
   return {
@@ -335,6 +371,16 @@ function combineChildren(a, b) {
   };
 }
 
+/**
+ * Create an error-lifting wrapper that prefixes a child's path with the
+ * parent's id (when present) and normalizes error shape.
+ *
+ * Returns a function that accepts an error-like object { path, error, ... }
+ * and returns a normalized object with:
+ * - path: array
+ * - which: dotted path string
+ * - error: the original error payload
+ */
 const liftError = (parentId) => ({ path, error, ...rest }) => {
   const newPath = parentId === undefined ? path : [parentId, ...path];
   return {
@@ -345,6 +391,16 @@ const liftError = (parentId) => ({ path, error, ...rest }) => {
   };
 };
 
+/**
+ * Recursively convert a details tree (status.details) to a flat list of
+ * error objects with lifted paths. Handles leaf nodes (no details) and
+ * nested nodes that themselves have .details.
+ *
+ * - details: an object mapping keys to status objects
+ * - parentId: optional id to prefix to each child's path
+ *
+ * Returns an array of normalized error objects.
+ */
 function detailsToErrors(details, parentId) {
   return Object.entries(details)
     .flatMap(([key, status]) => {
@@ -362,6 +418,12 @@ function detailsToErrors(details, parentId) {
     .map(liftError(parentId));
 }
 
+/**
+ * Summarize a status object that contains an error into a single error
+ * descriptor with a one-segment path.
+ *
+ * Input: { id, error } -> Output: { path: [id], which: id, error }
+ */
 function summarizeStatusError({ id, error }) {
   return { path: [id], which: id, error };
 }

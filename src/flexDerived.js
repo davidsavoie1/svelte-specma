@@ -1,8 +1,49 @@
 import { readable, writable } from "svelte/store";
 
+/**
+ * Minimal helpers
+ * @private
+ */
 const identity = (x) => x;
 const noop = () => {};
 
+/**
+ * flexDerived
+ *
+ * Create a derived-like Svelte store from a dynamic list of input stores.
+ * Unlike Svelte's built-in derived, this helper allows the set of source
+ * stores to change over time (stores can be added/removed). It exposes
+ * control methods to update the tracked stores and keeps a readable store
+ * for subscribers that publishes the combined result.
+ *
+ * Behaviour:
+ * - `fn` receives an array of source values in the order of the tracked stores.
+ * - If `fn.length < 2` (arity 1) its return value is published directly.
+ * - If `fn.length >= 2` (arity 2) `fn` is called with (values, publish) and may
+ *   call `publish` asynchronously; its return value may be a cleanup function.
+ *
+ * Parameters:
+ * - initialStores: Array of Svelte stores to subscribe to initially.
+ * - fn: mapping function (values) => result OR (values, publish) => (cleanup|void)
+ * - initialValue: optional initial published value
+ *
+ * Return value (object):
+ * - subscribe(fn): subscribe to derived values (Svelte readable contract)
+ * - include(...stores): add stores to the tracked set
+ * - exclude(...stores): remove stores from the tracked set
+ * - set(newStoresArray): replace the tracked set of stores
+ * - update(fn): update the tracked set using fn(prev) => next
+ * - stores: internal writable store holding the current list of tracked stores
+ *
+ * Example:
+ * const derived = flexDerived([storeA, storeB], (values) => values.join("-"), "");
+ * derived.subscribe(v => console.log(v));
+ * derived.include(storeC);
+ *
+ * Notes:
+ * - The implementation ensures ordering of values matches the tracked store order.
+ * - When no subscribers remain the helper unsubscribes from all source stores.
+ */
 function flexDerived(initialStores = [], fn = identity, initialValue) {
   /* Used for ordering values */
   let _stores = initialStores;
