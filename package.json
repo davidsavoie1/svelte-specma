@@ -1,6 +1,6 @@
 {
   "name": "svelte-specma",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Svelte store for data validation using Specma",
   "homepage": "https://github.com/davidsavoie1/svelte-specma.git",
   "repository": {

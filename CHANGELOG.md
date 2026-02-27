@@ -1,6 +1,6 @@
 # Changelog
 
-## [NEXT]
+## [2.1.0] - 2026-02-27
 
 - Pass `form` as second argument to `onSubmit`
 - Add `index.d.ts` types file
