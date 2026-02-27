@@ -1,5 +1,11 @@
 # Changelog
 
+## [NEXT]
+
+- Pass `form` as second argument to `onSubmit`
+
+---
+
 ## [2.0.0] - 2025-11-26
 
 - BREAK : Move Svelte from dependencies to peer-dependencies

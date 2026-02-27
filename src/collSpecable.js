@@ -270,15 +270,19 @@ export default function collSpecable(
   async function submit() {
     if (!onSubmit) return;
     submitting.set(true);
-    const valid = await activate();
-    if (valid) {
+    try {
+      const valid = await activate();
+      if (!valid) return false;
+
       const currValue = getStoreValue(ownSpecable).value;
-      await onSubmit(currValue);
+      await onSubmit(currValue, mainStore);
+      return true;
+    } finally {
+      submitting.set(false);
     }
-    submitting.set(false);
   }
 
-  return {
+  const mainStore = {
     id,
     isRequired,
     spec,
@@ -350,6 +354,8 @@ export default function collSpecable(
       };
     },
   };
+
+  return mainStore;
 }
 
 /**

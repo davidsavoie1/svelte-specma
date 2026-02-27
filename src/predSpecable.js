@@ -133,15 +133,19 @@ export default function predSpecable(
   async function submit() {
     if (!onSubmit) return;
     submitting.set(true);
-    const valid = await activate();
-    if (valid) {
+    try {
+      const valid = await activate();
+      if (!valid) return false;
+
       const currValue = getStoreValue(value);
-      await onSubmit(currValue);
+      await onSubmit(currValue, mainStore);
+      return true;
+    } finally {
+      submitting.set(false);
     }
-    submitting.set(false);
   }
 
-  return {
+  const mainStore = {
     id,
     isRequired,
     spec: pred,
@@ -163,6 +167,8 @@ export default function predSpecable(
 
     subscribe: store.subscribe,
   };
+
+  return mainStore;
 }
 
 function enhanceResult(res) {
