@@ -122,7 +122,9 @@ export default function collSpecable(
   };
 
   let childrenStores = fromEntries(
-    [...allKeys].map((key) => createChildEntry(key, get(key, initialValue))),
+    Array.from(allKeys).map((key) =>
+      createChildEntry(key, get(key, initialValue))
+    ),
     collType
   );
   const children = writable(childrenStores);

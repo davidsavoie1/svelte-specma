@@ -59,7 +59,7 @@ export const typeOf = (obj) =>
 export function entries(coll) {
   const fn = {
     array: () => coll.map((v, i) => [i, v]),
-    map: () => [...coll.entries()],
+    map: () => Array.from(coll.entries()),
     object: () => Object.entries(coll),
   }[typeOf(coll)];
 
@@ -94,7 +94,7 @@ export function fromEntries(entriesArr, toType) {
 export function values(coll) {
   const fn = {
     array: () => [...coll],
-    map: () => [...coll.values()],
+    map: () => Array.from(coll.values()),
     object: () => Object.values(coll),
   }[typeOf(coll)];
 
@@ -109,7 +109,7 @@ export function values(coll) {
 export function keys(coll) {
   const fn = {
     array: () => coll.map((v, i) => i),
-    map: () => [...coll.keys()],
+    map: () => Array.from(coll.keys()),
     object: () => Object.keys(coll),
   }[typeOf(coll)];
 
