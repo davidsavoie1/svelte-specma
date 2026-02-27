@@ -76,11 +76,14 @@ export function ensureConfigured() {
  * @throws {TypeError} if the provided object is missing required functions
  */
 export default function configure(specmaFns) {
-  if (
-    !specmaFns ||
-    REQUIRED_SPECMA_FNS.some((key) => typeof specmaFns[key] !== "function")
-  ) {
+  if (!specmaFns) {
     throw new TypeError(CONFIG_ERROR_MSG);
   }
+
+  REQUIRED_SPECMA_FNS.forEach((key) => {
+    if (typeof specmaFns[key] !== "function") {
+      throw new TypeError(`'${key}' must be a function provided by 'specma'`);
+    }
+  });
   specma = specmaFns;
 }

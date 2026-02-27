@@ -6,6 +6,7 @@
 - Add `index.d.ts` types file
 - Simplify README
 - Update `microbundle`
+- Report which required `specma` key is missing
 
 ---
 
