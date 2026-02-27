@@ -4,6 +4,7 @@
 
 - Pass `form` as second argument to `onSubmit`
 - Add `index.d.ts` types file
+- Simplify README
 
 ---
 
