@@ -26,11 +26,14 @@
   "author": "David Savoie",
   "license": "ISC",
   "source": "src/index.js",
-  "main": "dist/svelte-specma.umd.js",
-  "module": "dist/svelte-specma.modern.js",
+  "main": "./dist/svelte-specma.cjs.js",
+  "module": "./dist/svelte-specma.cjs.mjs",
+  "types": "./src/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/svelte-specma.modern.js"
+      "types": "./src/index.d.ts",
+      "import": "./dist/svelte-specma.cjs.mjs",
+      "require": "./dist/svelte-specma.cjs.js"
     }
   },
   "scripts": {
@@ -38,7 +41,8 @@
     "dev": "microbundle watch -f esm,cjs --generateTypes false"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/index.d.ts"
   ],
   "devDependencies": {
     "eslint": "^7.10.0",
